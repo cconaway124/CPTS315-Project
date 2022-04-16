@@ -58,7 +58,7 @@ export module Apriori {
         minConfidence: number;
         debugMode: boolean;
 
-        constructor(minSupport: number, minConfidence: number, debugMode: boolean) {
+        constructor(minSupport: number, minConfidence: number, debugMode: boolean=false) {
             this.minSupport = minSupport ? minSupport === 0 ? 0 : minSupport : 0.15;
             this.minConfidence = minConfidence ? minConfidence === 0 ? 0 : minConfidence : 0.6;
             this.debugMode = debugMode || false;
@@ -179,7 +179,7 @@ export module Apriori {
                 if (!alreadyAdded) alreadyAdded = f.itemSet.toString() === itemSet.toString();
             };
             for (var strItemSet in localFrequencies) {
-                var itemSet: string[] = strItemSet.split(',').sort(),
+                var itemSet: string[] = strItemSet.split(','),
                     localCount: number = localFrequencies[itemSet.toString()]??0,
                     support: number = localCount / transactions.length;
 
@@ -233,34 +233,40 @@ export module Apriori {
         }
         static toAllSubSets(array: string[]): string[][] {
             // refs: http://stackoverflow.com/questions/5752002/find-all-possible-subset-combos-in-an-array
-            var op = (n: number, sourceArray: string[], currentArray: string[], allSubSets: string[][]) => {
-                if (n === 0) {
-                    if (currentArray.length > 0) {
-                        allSubSets[allSubSets.length] = ArrayUtils.toStringSet(currentArray);
-                    }
-                } else {
-                    for (var j = 0; j < sourceArray.length; j++) {
-                        var nextN = n - 1,
-                            nextArray = sourceArray.slice(j + 1),
-                            updatedCurrentSubSet = currentArray.concat([sourceArray[j]??""]);
-                        op(nextN, nextArray, updatedCurrentSubSet, allSubSets);
-                    }
+            // var op = (n: number, sourceArray: string[], currentArray: string[], allSubSets: string[][]) => {
+            //     if (n === 0) {
+            //         if (currentArray.length > 0) {
+            //             allSubSets[allSubSets.length] = ArrayUtils.toStringSet(currentArray);
+            //         }
+            //     } else {
+            //         for (var j = 0; j < sourceArray.length; j++) {
+            //             var nextN = n - 1,
+            //                 nextArray = sourceArray.slice(j + 1),
+            //                 updatedCurrentSubSet = currentArray.concat([sourceArray[j]??""]);
+            //             op(nextN, nextArray, updatedCurrentSubSet, allSubSets);
+            //         }
+            //     }
+            // }
+            // var allSubSets: string[][] = [];
+            // for (var i = 1; i < array.length; i++) {
+            //     op(i, array, [], allSubSets);
+            // }
+            // allSubSets.push(array);
+            // return ArrayUtils.toArraySet(allSubSets);
+            const allSubSets: string[][] = []
+            for(let i = 0;i<array.length;i++){
+                for(let j = i;j<array.length+1;j++){
+                    allSubSets.push(array.slice(i,j))
                 }
             }
-            var allSubSets: string[][] = [];
-            array.sort();
-            for (var i = 1; i < array.length; i++) {
-                op(i, array, [], allSubSets);
-            }
-            allSubSets.push(array);
-            return ArrayUtils.toArraySet(allSubSets);
+            return allSubSets
         }
         static toFixedSizeJoinedSets(itemSets: string[][], length: number): string[][] {
             var joinedSetArray: string[][] = [];
             itemSets.forEach((itemSetA: string[]) => {
                 itemSets.forEach((itemSetB: string[]) => {
                     if (ArrayUtils.getDiffArray(itemSetA, itemSetB).length > 0) {
-                        var mergedArray = [...itemSetA].concat(itemSetB),
+                        var mergedArray = [...itemSetA,...itemSetB],
                             joinedSet = ArrayUtils.toStringSet(mergedArray);
                         if (joinedSet.length === length) joinedSetArray.push(joinedSet);
                     }
@@ -269,16 +275,58 @@ export module Apriori {
             return ArrayUtils.toArraySet(joinedSetArray);
         }
         static isSubSetArrayOf(targetArray: string[], superSetArray: string[]): boolean {
-            var isSubSetArray: boolean = true;
-            targetArray.forEach((item: string) => {
-                if (isSubSetArray && superSetArray.indexOf(item) === -1) isSubSetArray = false;
-            });
-            return isSubSetArray;
+            // var isSubSetArray: boolean = true;
+            // targetArray.forEach((item: string) => {
+            //     if (isSubSetArray && superSetArray.indexOf(item) === -1) isSubSetArray = false;
+            // });
+            // return isSubSetArray;
+               // Two pointers to traverse the arrays
+            let i = 0, j = 0;
+        
+            // Traverse both arrays simultaneously
+            while (i < superSetArray.length && j < targetArray.length) {
+        
+                // If element matches
+                // increment both pointers
+                if (superSetArray[i] == targetArray[j]) {
+        
+                    i++;
+                    j++;
+        
+                    // If array B is completely
+                    // traversed
+                    if (j == targetArray.length)
+                        return true;
+                }
+                // If not,
+                // increment i and reset j
+                else {
+                    i = i - j + 1;
+                    j = 0;
+                }
+            }
+        
+            return false;
         }
         static getDiffArray(arrayA: string[], arrayB: string[]): string[] {
-            var diffArray: string[] = [];
-            arrayA.forEach((e) => { if (arrayB.indexOf(e) === -1) diffArray.push(e); });
-            return diffArray;
+            console.log(arrayA,arrayB)
+            // var diffArray: string[] = [];
+            // arrayA.forEach((e) => { if (arrayB.indexOf(e) === -1) diffArray.push(e); });
+            // return diffArray;
+            if(arrayA.slice(0,arrayB.length).every((val,i)=>arrayB[i]==val)){
+                return arrayA.slice(arrayB.length)
+            }
+            if(arrayA.slice(-arrayB.length).every((val,i)=>arrayB[i]==val)){
+                return arrayA.slice(arrayA.length-arrayB.length)
+            }
+            return arrayA
+            // const diffArray = [...arrayA];
+            // const clonedB = [...arrayB];
+            // while(diffArray.length>0 && clonedB.length>0&&diffArray[diffArray.length-1] == clonedB[clonedB.length-1]){
+            //     diffArray.pop()
+            //     clonedB.pop()
+            // }
+            // return diffArray
         }
         static readCSVToArray(inputString: string, delimiter: string): string[][] {
             // ref: http://stackoverflow.com/a/1293163/2343

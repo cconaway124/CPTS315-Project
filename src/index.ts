@@ -47,7 +47,7 @@ console.log(associations(
         [
             "You are Bob",
             "Jane is not me",
-            "You not is Bob",
+            "You not is Nathan",
             "Jane not is Bob"
         ],
         x=>x.split(" ").map(t=>{
@@ -61,10 +61,11 @@ console.log(associations(
             if(negations.has(lowerT)){
                 return "Negation"
             }
-            if(t[0].toUpperCase()==t[0]){
+            if(t[0]?.toUpperCase()==t[0]){
                 return "ProperNoun"
             }
+            return "ERR"
         }),
-        3
+        4
     )
 ))
