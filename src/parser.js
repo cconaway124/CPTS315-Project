@@ -1,15 +1,18 @@
+import jsTokens from 'js-tokens'
+
+const types_of_tokens = ['static', 'number', 'semicolon',
+                         'function_name', 'comparison', 'arithmetic', 'string', 
+                         'bools', 'objs']
 
 function getFileContents(file) {
     const fs = require('fs')
 
-    return new String(fs.readFileSync(file, 'utf8'))
+    return fs.readFileSync(file, 'utf8')
 }
 
 function main() {
-    text = getFileContents('./course_project_idea.txt')
-    for(let i = 0; i < text.length; i++) {
-        console.log(text[i])
-    }
+    let text = getFileContents('./course_project_idea.txt')
+    const array = jsTokens(text)
 }
 
 main()
